@@ -1,0 +1,9 @@
+[submodule "nftProject-front"]
+	path = nftProject-front
+	url = https://github.com/yh2mai/nftProject-front.git
+[submodule "nftProject-backend"]
+	path = nftProject-backend
+	url = https://github.com/yh2mai/nftProject-backend.git
+[submodule "nftProject-truffle"]
+	path = nftProject-truffle
+	url = https://github.com/yh2mai/nftProject-truffle.git

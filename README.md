@@ -1,0 +1,1 @@
+The final goal for this project is to be able to create a draft nft project in one command line.
