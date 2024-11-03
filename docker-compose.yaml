@@ -1,4 +1,28 @@
 services:
+  ganache:
+    image: trufflesuite/ganache:latest
+    container_name: ganache
+    ports:
+      - "${GANACHE_PORT}:${GANACHE_PORT}"
+    command: >
+      --host 0.0.0.0
+      --defaultBalanceEther 1000
+      --gasLimit 6721975
+      --mnemonic "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+      --chain.chainId ${GANACHE_NETWORK_ID}
+
+  truffle:
+    build: ./nftProject-truffle
+    container_name: truffle
+    volumes:
+      - ./nftProject-truffle:/app
+      - truffle_build:/app/build  # Mount volume for shared build files
+    environment:
+      - GANACHE_NETWORK_ID=${GANACHE_NETWORK_ID}
+      - GANACHE_PORT=${GANACHE_PORT}
+    depends_on:
+      - ganache
+  
   frontend:
     build: ./nftProject-front
     container_name: web
@@ -6,6 +30,7 @@ services:
       - '3000:3000'
     volumes:
       - ./nftProject-front:/app
+      - truffle_build:/app/src/contracts
     develop:
       watch:
         - action: sync
@@ -13,6 +38,12 @@ services:
           target: /app
     environment:
       - WATCHPACK_POLLING=true
+      - REACT_APP_GANACHE_URL=http://ganache:${GANACHE_PORT}  # Access Ganache service within the same Docker network
+      - REACT_APP_GANACHE_NETWORK_ID=${GANACHE_NETWORK_ID}
+    depends_on:
+      - ganache  # Waits for Ganache to be ready before starting
+      - truffle
+
   backend:
     build: ./nftProject-backend
     command: node --inspect=0.0.0.0:9229 index.js  # Enable debugging on port 9229
@@ -21,6 +52,7 @@ services:
       - "9229:9229"
     volumes:
       - ./nftproject-backend:/usr/src/app
+      - ./nftProject-truffle/build/contracts/MyNFT.json:/usr/src/app/contracts/MyNFT.json
     develop:
       watch:
         - action: sync
@@ -31,10 +63,17 @@ services:
       - WATCHPACK_POLLING=true
     depends_on:
       - mongo
+      - truffle
 
   mongo:
     image: mongo:latest
+    command: ["mongod", "--quiet", "--logpath", "/dev/null"]
+    logging:
+      driver: "none"
     ports:
       - "27017:27017"
     volumes:
       - ./data/db:/data/db
+
+volumes:
+  truffle_build:  # Define the shared volume
