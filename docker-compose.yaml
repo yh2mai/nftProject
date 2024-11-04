@@ -15,8 +15,7 @@ services:
     build: ./nftProject-truffle
     container_name: truffle
     volumes:
-      - ./nftProject-truffle:/app
-      - truffle_build:/app/build  # Mount volume for shared build files
+      - truffle_build:/truffle/build  # Mount volume for shared build files
     environment:
       - GANACHE_NETWORK_ID=${GANACHE_NETWORK_ID}
       - GANACHE_PORT=${GANACHE_PORT}
@@ -29,13 +28,13 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - ./nftProject-front:/app
-      - truffle_build:/app/src/contracts
+      - ./nftProject-front:/front
+      - truffle_build:/front/src/contracts
     develop:
       watch:
         - action: sync
           path: .
-          target: /app
+          target: /front
     environment:
       - WATCHPACK_POLLING=true
       - REACT_APP_GANACHE_URL=http://ganache:${GANACHE_PORT}  # Access Ganache service within the same Docker network
@@ -51,13 +50,12 @@ services:
       - "5000:5000"
       - "9229:9229"
     volumes:
-      - ./nftproject-backend:/usr/src/app
-      - ./nftProject-truffle/build/contracts/MyNFT.json:/usr/src/app/contracts/MyNFT.json
+      - ./nftProject-truffle/build/contracts/MyNFT.json:/usr/src/backend/contracts/MyNFT.json
     develop:
       watch:
         - action: sync
           path: .
-          target: /usr/src/app
+          target: /usr/src/backend
     environment:
       - MONGO_URI=mongodb://mongo:27017/nft-db
       - WATCHPACK_POLLING=true
